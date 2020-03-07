@@ -1,10 +1,9 @@
 import request from '../utils/request';
 
-export const fetchData = query => {
+export const navArr = () => {
     return request({
-        url: './table.json',
-        method: 'get',
-        params: query
+        url: '/search/item',
+        method: 'get'
     });
 };
 

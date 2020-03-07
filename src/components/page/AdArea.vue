@@ -1,75 +1,75 @@
 <template>
-    <div>
-        <div class="container">
-            <el-button type="primary" class="top-select">添加</el-button>
-        </div>
-        <div class="container">
-            <el-table
-                :data="tableData"
-                border
-                class="table"
-                ref="multipleTable"
-                header-cell-class-name="table-header"
-                @selection-change="handleSelectionChange"
+    <div class="container">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+            <el-tab-pane
+                v-for="item of chargeArr"
+                :key="item.id"
+                :label="item.cycleName"
+                :name="item.cycleName"
             >
-                <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column label="头像" width="100">
-                    <template slot-scope="scope">
-                        <div class="block">
-                            <el-image :src="src">
-                                <div slot="placeholder" class="image-slot">
-                                    加载中
-                                    <span class="dot">...</span>
-                                </div>
-                            </el-image>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="业主名称">
-                    <template slot-scope="scope">￥{{scope.row.money}}</template>
-                </el-table-column>
-                <el-table-column label="账单总额"></el-table-column>
-                <el-table-column prop="name" label="归属月份"></el-table-column>
-                <el-table-column label="违约金总额"></el-table-column>
-                <el-table-column label="截止日期">
-                    <template slot-scope="scope">
-                        <el-tag
-                            :type="scope.row.state==='已认证'?'success':(scope.row.state==='未认证'?'danger':'')"
-                        >{{scope.row.state}}</el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" width="180">
-                    <template slot-scope="scope">
-                        <el-button
-                            type="text"
-                            icon="el-icon-delete"
-                            class="red"
-                            @click="handleDelete(scope.$index, scope.row)"
-                        >删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <div class="pagination">
-                <el-pagination
-                    background
-                    layout="total, prev, pager, next"
-                    :current-page="query.pageIndex"
-                    :page-size="query.pageSize"
-                    :total="pageTotal"
-                    @current-change="handlePageChange"
-                ></el-pagination>
-            </div>
-        </div>
-
+                <el-button type="primary" class="top-select" @click="handleEdit(0, 0, item.id, '添加')">添加</el-button>
+                <el-table :data="item.cycleArr" style="width: 100%">
+                    >
+                    <el-table-column property="id" label="ID" width="50"></el-table-column>
+                    <el-table-column property="itemName" label="名称"></el-table-column>
+                    <el-table-column property="backColour" label="标签颜色" v-if="item.background">
+                        <template slot-scope="scope">
+                            <div class="block" :style="{background: scope.row.backColour}"></div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="显示状态">
+                        <template slot-scope="scope">
+                            <span>{{scope.row.status===1?'上架':'下架'}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column property="createTime" label="创建时间"></el-table-column>
+                    <el-table-column label="操作">
+                        <template slot-scope="scope">
+                            <el-button
+                                type="text"
+                                icon="el-icon-edit"
+                                @click="handleEdit(scope.$index, scope.row, item.id, '编辑')"
+                            >编辑</el-button>
+                            <el-button
+                                type="text"
+                                icon="el-icon-edit"
+                                @click="handleUpperLower(scope.$index, scope.row, 1)"
+                            >上架</el-button>
+                            <el-button
+                                type="text"
+                                icon="el-icon-delete"
+                                class="red"
+                                @click="handleUpperLower(scope.$index, scope.row, 2)"
+                            >下架</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <div class="pagination">
+                    <el-pagination
+                        background
+                        layout="total, prev, pager, next"
+                        :current-page="query.page"
+                        :page-size="query.pageSize"
+                        :total="query.pageTotal"
+                        @current-change="handlePageChange"
+                    ></el-pagination>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="用户名">
-                    <el-input v-model="form.name"></el-input>
+        <el-dialog :title="dialogTitle" :visible.sync="editVisible" width="30%">
+            <el-form :model="param" :rules="rules" ref="login" label-width="0px" class="ms-content">
+                <el-form-item prop="itemName">
+                    <el-input v-model="param.itemName" placeholder="请输入标签"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
+                <el-form-item prop="backColour" v-if="id===1">
+                    <el-input placeholder="请输入十六进制颜色值" v-model="param.backColour"></el-input>
                 </el-form-item>
+                <el-form-item prop="status">
+                    <el-radio v-model="param.status" label="1">上架</el-radio>
+                    <el-radio v-model="param.status" label="2">下架</el-radio>
+                </el-form-item>
+                <textarea name="mark" placeholder="备注" v-model="param.mark" id="" cols="30" rows="5"></textarea>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -78,204 +78,217 @@
         </el-dialog>
     </div>
 </template>
-
 <script>
-import { fetchData } from '../../api/index';
+import { attrsArr } from '@/api/attrs';
 export default {
-    name: 'Unpaid',
     data() {
+        let validateColor = (rule, value, callback) => {
+            let reg = /^#([a-fA-F\d]{6}|[a-fA-F\d]{3})$/
+            if (value === '') {
+                callback(new Error('不能为空'));
+            } else if (!reg.test(value)) {
+                callback(new Error('请输入十六进制颜色值!'));
+            } else {
+                callback();
+            }
+        };
         return {
-            src: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
-            query: {
-                address: '',
-                name: '',
-                pageIndex: 1,
-                pageSize: 10
+            dialogTitle: '',
+            param: {
+                itemName: '',
+                backColour: '',
+                status: '',
+                mark: ''
             },
-            tableData: [
-                {
-                    id: 1
-                }
-            ],
-            multipleSelection: [],
-            delList: [],
+            rules: {
+                itemName: [{ required: true, message: '请输入标签', trigger: 'blur' }],
+                backColour: [{ validator: validateColor, trigger: 'blur' }],
+            },
+            query: {
+                url: '/attr/adLabelList',
+                page: 1,
+                pageSize: 10,
+                pageTotal: 0
+            },
+            activeName: '标签',
             editVisible: false,
-            pageTotal: 0,
-            form: {},
-            idx: -1,
-            id: -1,
-            tungs: [
+            chargeArr: [
                 {
-                    value: '选项1',
-                    label: '黄金糕'
+                    id: 1,
+                    cycleName: '标签',
+                    background: true,
+                    cycleArr: []
                 },
                 {
-                    value: '选项2',
-                    label: '双皮奶'
+                    id: 2,
+                    cycleName: '类型',
+                    cycleArr: []
                 },
                 {
-                    value: '选项3',
-                    label: '蚵仔煎'
+                    id: 3,
+                    cycleName: '区域',
+                    cycleArr: []
                 },
                 {
-                    value: '选项4',
-                    label: '龙须面'
+                    id: 4,
+                    cycleName: '价格',
+                    cycleArr: []
                 },
                 {
-                    value: '选项5',
-                    label: '北京烤鸭'
+                    id: 5,
+                    cycleName: '周期',
+                    cycleArr: []
                 }
             ],
-            units: [
-                {
-                    value: '选项1',
-                    label: '黄金糕'
-                },
-                {
-                    value: '选项2',
-                    label: '双皮奶'
-                },
-                {
-                    value: '选项3',
-                    label: '蚵仔煎'
-                },
-                {
-                    value: '选项4',
-                    label: '龙须面'
-                },
-                {
-                    value: '选项5',
-                    label: '北京烤鸭'
-                }
-            ],
-            numbers: [
-                {
-                    value: '选项1',
-                    label: '黄金糕'
-                },
-                {
-                    value: '选项2',
-                    label: '双皮奶'
-                },
-                {
-                    value: '选项3',
-                    label: '蚵仔煎'
-                },
-                {
-                    value: '选项4',
-                    label: '龙须面'
-                },
-                {
-                    value: '选项5',
-                    label: '北京烤鸭'
-                }
-            ],
-            tung: '',
-            unit: '',
-            number: '',
-            username: '',
-            userPhone: ''
+            currentRow: null,
+            index: 0,
+            row: {},
+            id: 1
         };
     },
     created() {
-        this.getData();
+        this.getAttrsArr(this.query)
     },
-    mounted() {},
     methods: {
-        // 获取 easy-mock 的模拟数据
-        getData() {
-            fetchData(this.query).then(res => {
-                console.log(res);
-                this.tableData = res.list;
-                this.pageTotal = res.pageTotal || 50;
-            });
-        },
-        // 触发搜索按钮
-        handleSearch() {
-            this.$set(this.query, 'pageIndex', 1);
-            this.getData();
-        },
-        // 删除操作
-        handleDelete(index, row) {
-            // 二次确认删除
-            this.$confirm('确定要删除吗？', '提示', {
-                type: 'warning'
+        getAttrsArr(query) {
+            attrsArr(query).then(res => {
+                console.log(res)
+                if (this.activeName === '标签') {
+                    res.data.records.forEach(element => {
+                        element.id = element.labelId
+                        element.itemName = element.labelName
+                    });
+                    this.chargeArr[0].cycleArr = res.data.records
+                }
+                if (this.activeName === '类型') {
+                    res.data.records.forEach(element => {
+                        element.id = element.typeId
+                        element.itemName = element.typeName
+                    });
+                    this.chargeArr[1].cycleArr = res.data.records
+                }
+                if (this.activeName === '区域') {
+                    res.data.records.forEach(element => {
+                        element.id = element.areaId
+                        element.itemName = element.areaName
+                    });
+                    this.chargeArr[2].cycleArr = res.data.records
+                }
+                if (this.activeName === '价格') {
+                    res.data.records.forEach(element => {
+                        element.id = element.priceId
+                        element.itemName = element.priceName
+                    });
+                    this.chargeArr[3].cycleArr = res.data.records
+                }
+                if (this.activeName === '周期') {
+                    res.data.records.forEach(element => {
+                        element.id = element.cycleId
+                        element.itemName = element.cycleName
+                    });
+                    this.chargeArr[4].cycleArr = res.data.records
+                }
+                this.query.pageTotal = res.data.total
             })
-                .then(() => {
-                    this.$message.success('删除成功');
-                    this.tableData.splice(index, 1);
-                })
-                .catch(() => {});
         },
-        // 多选操作
-        handleSelectionChange(val) {
-            this.multipleSelection = val;
-        },
-        delAllSelection() {
-            const length = this.multipleSelection.length;
-            let str = '';
-            this.delList = this.delList.concat(this.multipleSelection);
-            for (let i = 0; i < length; i++) {
-                str += this.multipleSelection[i].name + ' ';
-            }
-            this.$message.error(`删除了${str}`);
-            this.multipleSelection = [];
-        },
-        // 保存编辑
-        saveEdit() {
-            this.editVisible = false;
-            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-            this.$set(this.tableData, this.idx, this.form);
-        },
+        
         // 分页导航
         handlePageChange(val) {
             this.$set(this.query, 'pageIndex', val);
-            this.getData();
+        },
+        handleClick(tab, event) {
+            console.log(tab, event);
+            let url = '';
+            if (tab.index === '0') {
+                url = '/attr/adLabelList'
+            } else if(tab.index === '1') {
+                url = '/attr/adTypeList'
+            } else if(tab.index === '2') {
+                url = '/attr/adAreaList'
+            } else if(tab.index === '3') {
+                url = '/attr/adPriceList'
+            } else {
+                url = '/attr/adCycleList'
+            }
+            this.query.url = url
+            this.getAttrsArr(this.query)
+        },
+        setCurrent(row) {
+            this.$refs.singleTable.setCurrentRow(row);
+        },
+        handleCurrentChange(val) {
+            this.currentRow = val;
+        },
+        handleEdit(rowIndex, row, id, handleType) {
+            console.log(rowIndex, row, id, handleType)
+            this.index = rowIndex
+            this.row = row
+            this.id = id
+            switch(id) {
+                case 1:
+                this.dialogTitle = handleType + '标签'
+                break;
+                case 2:
+                this.dialogTitle = handleType + '类型'
+                break;
+                case 3:
+                this.dialogTitle = handleType + '区域'
+                break;
+                case 4:
+                this.dialogTitle = handleType + '价格'
+                break;
+                case 5:
+                this.dialogTitle = handleType + '周期'
+                break;
+            }
+            this.editVisible = true
+        },
+        // 保存编辑
+        saveEdit() {
+            
+        },
+        handleUpperLower() {
+
         }
     }
 };
 </script>
 
 <style scoped>
-.container {
-    margin-bottom: 20px;
+.row-expand-cover td:last-child .el-icon-arrow-right {
+    visibility: hidden;
 }
+.plus-btn {
+    margin-bottom: 15px;
+}
+
 .top-select {
-    width: 220px;
-    margin-right: 20px;
-}
-.input-box {
-    width: 190px;
-    display: inline-block;
-    margin-top: 10px;
-    margin-right: 20px;
-}
-.handle-box {
-    margin-bottom: 20px;
+    /* float: right; */
+    margin: 0 20px 20px 0;
 }
 
-.handle-select {
-    width: 120px;
-}
-
-.handle-input {
-    width: 300px;
-    display: inline-block;
-}
-.table {
-    width: 100%;
-    font-size: 14px;
+.block {
+    width: 100px;
+    height: 50px;
+    background: #ff0000;
 }
 .red {
     color: #ff0000;
 }
-.mr10 {
-    margin-right: 10px;
+
+.dialg-content {
+    width: 100%;
+    text-align: center;
+    color: #ff0000;
 }
-.table-td-thumb {
-    display: block;
-    margin: auto;
-    width: 40px;
-    height: 40px;
+
+.right-box {
+    padding: 0 10px;
+}
+
+textarea {
+    width: 100%;
+    margin-top: 20px;
+    line-height: 23px;
 }
 </style>
