@@ -8,6 +8,26 @@ export const fetchData = query => {
     });
 };
 
+export const comList = query => {
+    return request({
+        url: '/company/comList',
+        method: 'post',
+        data: {
+            status: query.status,
+            page: query.page,
+            pageSize: query.pageSize
+        }
+    });
+};
+
+export const comuUdate = query => {
+    return request({
+        url: '/company/update',
+        method: 'post',
+        data: query
+    });
+};
+
 export const resigeterData = query => {
     return request({
         url: '/user/register',

@@ -3,7 +3,7 @@
         <div class="container">
             <el-row>
                 <el-col :span="17">
-                    <el-select v-model="tung" class="top-select" placeholder="请选择楼栋">
+                    <el-select v-model="tung" class="top-select" placeholder="企业名称">
                         <el-option
                             v-for="item in tungs"
                             :key="item.value"
@@ -11,7 +11,7 @@
                             :value="item.value"
                         ></el-option>
                     </el-select>
-                    <el-select v-model="unit" class="top-select" placeholder="请选择单元">
+                    <el-select v-model="phone" class="top-select" placeholder="电话号码">
                         <el-option
                             v-for="item in units"
                             :key="item.value"
@@ -19,47 +19,8 @@
                             :value="item.value"
                         ></el-option>
                     </el-select>
-                    <el-select v-model="number" class="top-select" placeholder="请选择房号">
-                        <el-option
-                            v-for="item in numbers"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                        ></el-option>
-                    </el-select>
                     <el-button type="primary" class="top-select">查询</el-button>
-                    <el-dropdown class="top-select">
-                        <el-button type="primary">
-                            更多菜单
-                            <i class="el-icon-arrow-down el-icon--right"></i>
-                        </el-button>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item>黄金糕</el-dropdown-item>
-                            <el-dropdown-item>狮子头</el-dropdown-item>
-                            <el-dropdown-item>螺蛳粉</el-dropdown-item>
-                            <el-dropdown-item>双皮奶</el-dropdown-item>
-                            <el-dropdown-item>蚵仔煎</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown>
                 </el-col>
-                <el-col :span="7" class="from-right-box">
-                    <el-button
-                        type="primary"
-                        icon="el-icon-plus"
-                        class="top-select"
-                        @click="addProject"
-                    >添加</el-button>
-                    <el-button type="primary" class="top-select">导入数据</el-button>
-                </el-col>
-            </el-row>
-
-            <el-row>
-                <div class="input-box">
-                    <el-input v-model="username" placeholder="请输入业主姓名"></el-input>
-                </div>
-                <div class="input-box">
-                    <el-input v-model="userPhone" placeholder="请输入业主手机"></el-input>
-                </div>
             </el-row>
         </div>
         <div class="container">
@@ -71,25 +32,52 @@
                 header-cell-class-name="table-header"
                 @selection-change="handleSelectionChange"
             >
-                <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="peopleId" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="name" label="姓名" align="center"></el-table-column>
-                <el-table-column prop="phone" label="电话号码" align="center"></el-table-column>
-                <el-table-column label="住户身份" align="center">
-                    <template slot-scope="scope">
-                        {{scope.row.identity > 1 ? '住户':'业主'}}
+                <el-table-column type="expand">
+                    >
+                    <template slot-scope="props">
+                        <el-table
+                            ref="singleTable"
+                            :data="props.row.children"
+                            highlight-current-row
+                            @current-change="handleCurrentChange"
+                            style="width: 100%"
+                        >
+                            <el-table-column property="date" label="名称" width="120"></el-table-column>
+                            <el-table-column property="name" label="计量方式" width="120"></el-table-column>
+                            <el-table-column property="address" label="单价"></el-table-column>
+                            <el-table-column property="address" label="数量"></el-table-column>
+                            <el-table-column property="address" label="违约金"></el-table-column>
+                            <el-table-column property="address" label="总金额"></el-table-column>
+                            <el-table-column label="操作" width="180">
+                                <template slot-scope="scope">
+                                    <el-button
+                                        type="text"
+                                        icon="el-icon-delete"
+                                        class="red"
+                                        @click="handleDelete(scope.$index, scope.row)"
+                                    >删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
                     </template>
                 </el-table-column>
-                <el-table-column label="所在房屋" align="center"></el-table-column>
-                <el-table-column prop="createTime" label="添加时间" align="center"></el-table-column>
-                <el-table-column prop="marks" label="备注" align="center"></el-table-column>
-                <el-table-column label="操作" width="180" align="center">
+                <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
+                <el-table-column label="所在房屋"></el-table-column>
+                <el-table-column label="业主名称">
+                    <template slot-scope="scope">￥{{scope.row.money}}</template>
+                </el-table-column>
+                <el-table-column label="账单总额"></el-table-column>
+                <el-table-column prop="name" label="归属月份"></el-table-column>
+                <el-table-column label="违约金总额"></el-table-column>
+                <el-table-column label="截止日期">
                     <template slot-scope="scope">
-                        <el-button
-                            type="text"
-                            icon="el-icon-edit"
-                            @click="handleEdit(scope.$index, scope.row)"
-                        >编辑</el-button>
+                        <el-tag
+                            :type="scope.row.state==='已认证'?'success':(scope.row.state==='未认证'?'danger':'')"
+                        >{{scope.row.state}}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="180">
+                    <template slot-scope="scope">
                         <el-button
                             type="text"
                             icon="el-icon-delete"
@@ -113,29 +101,26 @@
 
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :rules="rules" :model="param" label-width="90px">
-                <el-form-item label="小区" prop="areaName">
-                    <el-input v-model="param.areaName" @keyup.enter.native="saveEdit()"></el-input>
+            <el-form ref="form" :model="form" label-width="70px">
+                <el-form-item label="用户名">
+                    <el-input v-model="form.name"></el-input>
                 </el-form-item>
-                <el-form-item label="家属/业主" prop="name">
-                    <el-input v-model="param.name" @keyup.enter.native="saveEdit()"></el-input>
+                <el-form-item label="地址">
+                    <el-input v-model="form.address"></el-input>
                 </el-form-item>
-                <el-form-item label="房号" prop="houseId">
-                    <el-input v-model="param.houseId" @keyup.enter.native="saveEdit()"></el-input>
-                </el-form-item>
-                <!-- <span slot="footer" class="dialog-footer"> -->
-                <el-button @click="editVisible = false">取 消</el-button>
-                <el-button type="primary" @click="saveEdit()">确 定</el-button>
-                <!-- </span> -->
             </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveEdit">确 定</el-button>
+            </span>
         </el-dialog>
     </div>
 </template>
 
 <script>
-import { fetchData , addPeople, peopleList} from '@/api/index';
+import { fetchData } from '../../api/index';
 export default {
-    name: 'basetable',
+    name: 'Unpaid',
     data() {
         return {
             query: {
@@ -222,37 +207,26 @@ export default {
             unit: '',
             number: '',
             username: '',
-            userPhone: '',
-            param: {
-                areaId: '14',
-                areaName: '',
-                name: '',
-                houseId: '6',
-                identity: '1'
-            },
-            rules: {
-                areaName: [{ required: true, message: '请输入小区名称', trigger: 'blur' }],
-                name: [{ required: true, message: '请输入业主姓名', trigger: 'blur' }],
-                houseId: [{ required: true, message: '请输入房号', trigger: 'blur' }],
-                identity: [{ required: true, message: '请输入业主', trigger: 'blur' }],
-                areaId: [{ required: true, message: '请输入小区', trigger: 'blur' }]
-            }
+            userPhone: ''
         };
     },
     created() {
-        this.getPeopleList()
+        this.getData();
     },
     mounted() {},
     methods: {
-        getPeopleList() {
-            peopleList().then(res => {
-                console.log(res)
-                this.tableData = res.data.records
-            })
+        // 获取 easy-mock 的模拟数据
+        getData() {
+            fetchData(this.query).then(res => {
+                console.log(res);
+                this.tableData = res.list;
+                this.pageTotal = res.pageTotal || 50;
+            });
         },
         // 触发搜索按钮
         handleSearch() {
             this.$set(this.query, 'pageIndex', 1);
+            this.getData();
         },
         // 删除操作
         handleDelete(index, row) {
@@ -280,27 +254,11 @@ export default {
             this.$message.error(`删除了${str}`);
             this.multipleSelection = [];
         },
-        //添加弹窗
-        addProject() {
-            this.editVisible = true;
-        },
-        // 编辑操作
-        handleEdit(index, row) {
-            this.idx = index;
-            this.form = row;
-            this.editVisible = true;
-        },
         // 保存编辑
         saveEdit() {
-            this.$refs.form.validate(valid => {
-                if (valid) {
-                    console.log(this.param)
-                    addPeople(this.param).then(res => {
-                        console.log(res)
-                        this.editVisible = false
-                    })
-                }
-            });
+            this.editVisible = false;
+            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航
         handlePageChange(val) {
@@ -316,7 +274,7 @@ export default {
     margin-bottom: 20px;
 }
 .top-select {
-    width: 120px;
+    width: 220px;
     margin-right: 20px;
 }
 .input-box {
@@ -324,9 +282,6 @@ export default {
     display: inline-block;
     margin-top: 10px;
     margin-right: 20px;
-}
-.from-right-box {
-    text-align: right;
 }
 .handle-box {
     margin-bottom: 20px;

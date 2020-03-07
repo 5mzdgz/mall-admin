@@ -50,7 +50,7 @@
                 </el-row>
             </el-col>
         </el-row>
-        <el-row :gutter="20">
+        <!-- <el-row :gutter="20">
             <el-col :span="12">
                 <el-card shadow="hover">
                 <schart class="schart" canvasId="pie" :options="options3"></schart>                </el-card>
@@ -60,7 +60,7 @@
                     <schart ref="line" class="schart" canvasId="line" :options="options2"></schart>
                 </el-card>
             </el-col>
-        </el-row>
+        </el-row> -->
     </div>
 </template>
 
@@ -117,8 +117,8 @@ export default {
         
     },
     created() {
-        this.handleListener();
-        this.changeDate();
+        // this.handleListener();
+        // this.changeDate();
     },
     activated() {
         this.handleListener();

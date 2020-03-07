@@ -22,39 +22,39 @@ Vue.use(Router);
                     meta: { title: '系统首页', need_login: true }
                 },
                 {
-                    path: '/finance',
-                    component: () => import(/* webpackChunkName: "finance" */ '../components/page/Finance.vue'),
-                    meta: { title: '财务管理' }
+                    path: '/examine',
+                    component: () => import(/* webpackChunkName: "examine" */ '../components/page/Examine.vue'),
+                    meta: { title: '广告位审核' }
                 },
                 {
-                    path: '/house',
-                    component: () => import(/* webpackChunkName: "house" */ '../components/page/House.vue'),
-                    meta: { title: '房屋管理' }
+                    path: '/adverList',
+                    component: () => import(/* webpackChunkName: "adverList" */ '../components/page/AdverList.vue'),
+                    meta: { title: '广告位列表' }
                 },
                 {
-                    path: '/owner',
-                    component: () => import(/* webpackChunkName: "owner" */ '../components/page/Owner.vue'),
-                    meta: { title: '业主管理' }
+                    path: '/roleList',
+                    component: () => import(/* webpackChunkName: "roleList" */ '../components/page/RoleList.vue'),
+                    meta: { title: '角色管理' }
                 },
                 {
-                    path: '/charge',
-                    component: () => import(/* webpackChunkName: "charge" */ '../components/page/Charge.vue'),
-                    meta: { title: '收费管理' }
+                    path: '/userList',
+                    component: () => import(/* webpackChunkName: "userList" */ '../components/page/UserList.vue'),
+                    meta: { title: '用户列表' }
                 },
                 {
-                    path: '/unpaid',
-                    component: () => import(/* webpackChunkName: "unpaid" */ '../components/page/Unpaid.vue'),
-                    meta: { title: '未缴费账单' }
+                    path: '/enterprise',
+                    component: () => import(/* webpackChunkName: "enterprise" */ '../components/page/Enterprise.vue'),
+                    meta: { title: '企业认证' }
                 },
                 {
-                    path: '/meterReading',
-                    component: () => import(/* webpackChunkName: "meterReading" */ '../components/page/MeterReading.vue'),
-                    meta: { title: '抄表录入' }
+                    path: '/enterpriseList',
+                    component: () => import(/* webpackChunkName: "enterpriseList" */ '../components/page/EnterpriseList.vue'),
+                    meta: { title: '企业列表' }
                 },
                 {
-                    path: '/generateBills',
-                    component: () => import(/* webpackChunkName: "generateBills" */ '../components/page/GenerateBills.vue'),
-                    meta: { title: '生成账单' }
+                    path: '/adLabel',
+                    component: () => import(/* webpackChunkName: "adLabel" */ '../components/page/AdLabel.vue'),
+                    meta: { title: '标签管理' }
                 },
                 {
                     // 富文本编辑器组件
@@ -73,6 +73,46 @@ Vue.use(Router);
                     path: '/upload',
                     component: () => import(/* webpackChunkName: "upload" */ '../components/page/Upload.vue'),
                     meta: { title: '文件上传' }
+                },
+                {
+                    path: '/adType',
+                    component: () => import(/* webpackChunkName: "adType" */ '../components/page/AdType.vue'),
+                    meta: { title: '类型管理' }
+                },
+                {
+                    path: '/adArea',
+                    component: () => import(/* webpackChunkName: "adArea" */ '../components/page/AdArea.vue'),
+                    meta: { title: '区域管理' }
+                },
+                {
+                    path: '/adPrice',
+                    component: () => import(/* webpackChunkName: "adPrice" */ '../components/page/AdPrice.vue'),
+                    meta: { title: '区域管理' }
+                },
+                {
+                    path: '/analysis',
+                    component: () => import(/* webpackChunkName: "analysis" */ '../components/page/Analysis.vue'),
+                    meta: { title: '数据分析' }
+                },
+                {
+                    path: '/backstage',
+                    component: () => import(/* webpackChunkName: "backstage" */ '../components/page/Backstage.vue'),
+                    meta: { title: '后台管理' }
+                },
+                {
+                    path: '/wxhome',
+                    component: () => import(/* webpackChunkName: "wxhome" */ '../components/page/Wxhome.vue'),
+                    meta: { title: '小程序首页' }
+                },
+                {
+                    path: '/wxnav',
+                    component: () => import(/* webpackChunkName: "wxnav" */ '../components/page/Wxnav.vue'),
+                    meta: { title: '小程序导航' }
+                },
+                {
+                    path: '/wxother',
+                    component: () => import(/* webpackChunkName: "wxother" */ '../components/page/Wxother.vue'),
+                    meta: { title: '小程序其他' }
                 },
                 {
                     // vue-schart组件
@@ -130,23 +170,29 @@ Vue.use(Router);
 
 //使用钩子函数对路由进行权限跳转
 router.beforeEach((to, from, next) => {
-    document.title = `${to.meta.title} | 物业后台管理系统`;
-    const token = sessionStorage.getItem('token');
-    console.log(token)
-    console.log(to.path)
-    if (to.path != null) {
-        if (to.meta.need_login) {
-            if (!token) {
-                next('/login')
+    document.title = `${to.meta.title} | 广告台管理系统`;
+    let token = sessionStorage.getItem('token');
+    if (to.meta.need_login) {
+        if (!token) {
+            next('/login');
+        } else {
+            // 简单的判断IE10及以下不进入富文本编辑器，该组件不兼容
+            if (navigator.userAgent.indexOf('MSIE') > -1 && to.path === '/editor') {
+                Vue.prototype.$alert('vue-quill-editor组件不兼容IE10及以下浏览器，请使用更高版本的浏览器查看', '浏览器不兼容通知', {
+                    confirmButtonText: '确定'
+                });
             } else {
-                if (navigator.userAgent.indexOf('MSIE') > -1 && to.path === '/editor') {
-                    Vue.prototype.$alert('vue-quill-editor组件不兼容IE10及以下浏览器，请使用更高版本的浏览器查看', '浏览器不兼容通知', {
-                        confirmButtonText: '确定'
-                    });
-                } else {
-                    next();
-                }
+                console.log(token)
+                next();
             }
+        }
+    } else {
+        if (navigator.userAgent.indexOf('MSIE') > -1 && to.path === '/editor') {
+            Vue.prototype.$alert('vue-quill-editor组件不兼容IE10及以下浏览器，请使用更高版本的浏览器查看', '浏览器不兼容通知', {
+                confirmButtonText: '确定'
+            });
+        } else {
+            next();
         }
     }
 });

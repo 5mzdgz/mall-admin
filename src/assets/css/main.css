@@ -175,3 +175,9 @@ a {
 .v-note-wrapper .v-note-panel {
     min-height: 500px;
 }
+
+.flex-r {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

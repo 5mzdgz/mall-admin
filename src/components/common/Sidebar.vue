@@ -64,62 +64,105 @@ export default {
                 },
                 {
                     icon: 'el-icon-lx-home',
-                    index: 'dashboard',
+                    index: '1',
                     title: '用户管理',
-                    userType: 4
+                    userType: 4,
+                    subs: [
+                        {
+                            index: 'userList',
+                            title: '用户列表'
+                        },
+                        {
+                            index: 'permission',
+                            title: '权限管理',
+                        },
+                        {
+                            index: 'roleList',
+                            title: '角色列表',
+                        }
+                    ]
                 },
                 {
                     icon: 'el-icon-lx-cascades',
                     index: '2',
-                    title: '社区管理',
+                    title: '广告管理',
                     subs: [
                         {
-                            index: 'house',
-                            title: '房屋管理'
+                            index: 'adverList',
+                            title: '广告位列表'
                         },
                         {
-                            index: 'owner',
-                            title: '业主管理',
-                        },
-                        {
-                            index: 'authentication',
-                            title: '房屋认证'
+                            index: 'examine',
+                            title: '广告位审核',
                         }
                     ]
                 },
                 {
                     icon: 'el-icon-lx-copy',
-                    index: 'charge',
-                    title: '收费管理'
+                    index: '3',
+                    title: '广告属性',
+                    subs: [
+                        {
+                            index: 'adLabel',
+                            title: '标签管理'
+                        },
+                        {
+                            index: 'adType',
+                            title: '类型管理',
+                        },
+                        {
+                            index: 'adArea',
+                            title: '区域管理'
+                        },
+                        {
+                            index: 'adPrice',
+                            title: '价格管理',
+                        }
+                    ]
                 },
                 {
                     icon: 'el-icon-lx-calendar',
-                    index: '3',
-                    title: '账单管理',
+                    index: '4',
+                    title: '内容管理',
                     subs: [
                         {
-                            index: 'unpaid',
-                            title: '未缴费账单'
+                            index: 'wxhome',
+                            title: '首页轮播图'
                         },
                         {
-                            index: 'meterReading',
-                            title: '抄表录入'
+                            index: 'wxnav',
+                            title: '导航管理'
                         },
                         {
-                            index: 'generateBills',
-                            title: '生成账单'
+                            index: 'wxother',
+                            title: '其他内容'
+                        }
+                    ]
+                },
+                {
+                    icon: 'el-icon-pie-chart',
+                    index: '5',
+                    title: '企业管理',
+                    subs: [
+                        {
+                            index: 'enterpriseList',
+                            title: '企业列表'
+                        },
+                        {
+                            index: 'enterprise',
+                            title: '企业认证'
                         }
                     ]
                 },
                 {
                     icon: 'el-icon-lx-emoji',
-                    index: 'finance',
-                    title: '财务管理'
+                    index: 'analysis',
+                    title: '数据分析'
                 },
                 {
-                    icon: 'el-icon-pie-chart',
-                    index: 'enterprise',
-                    title: '企业管理'
+                    icon: 'el-icon-lx-emoji',
+                    index: 'backstage',
+                    title: '后台管理'
                 },
                 {
                     icon: 'el-icon-rank',
@@ -146,10 +189,10 @@ export default {
                     index: '7',
                     title: '错误处理',
                     subs: [
-                        {
-                            index: 'permission',
-                            title: '权限测试'
-                        },
+                        // {
+                        //     index: 'permission',
+                        //     title: '权限测试'
+                        // },
                         {
                             index: '404',
                             title: '404页面'
@@ -175,7 +218,7 @@ export default {
             this.collapse = msg;
             bus.$emit('collapse-content', msg);
         });
-        this.getUserData();
+        // this.getUserData();
     },
     methods: {
         getUserData() {
