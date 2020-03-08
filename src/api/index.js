@@ -1,12 +1,5 @@
 import request from '../utils/request';
 
-export const navArr = () => {
-    return request({
-        url: '/search/item',
-        method: 'get'
-    });
-};
-
 export const comList = query => {
     return request({
         url: '/company/comList',
@@ -54,34 +47,6 @@ export const userData = () => {
     return request({
         url: '/user/info',
         method: 'get'
-    });
-};
-
-export const houseList = query => {
-    return request({
-        url: '/area/getHouseList',
-        method: 'post',
-        data: {
-            page: 1,
-            pageSize: 10,
-            areaId: 14
-        }
-    });
-};
-
-export const addHouse = query => {
-    return request({
-        url: '/area/addHouse',
-        method: 'post',
-        data: {
-            areaId: query.areaId,
-            areaName: query.areaName,
-            tungs: query.tungs,
-            units: query.units,
-            houseNum: query.houseNum,
-            houseSquare: query.houseSquare,
-            househx: query.househx
-        }
     });
 };
 

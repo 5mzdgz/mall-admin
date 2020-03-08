@@ -99,26 +99,8 @@ export default {
                 },
                 {
                     icon: 'el-icon-lx-copy',
-                    index: '3',
-                    title: '广告属性',
-                    subs: [
-                        {
-                            index: 'adLabel',
-                            title: '标签管理'
-                        },
-                        {
-                            index: 'adType',
-                            title: '类型管理',
-                        },
-                        {
-                            index: 'adArea',
-                            title: '区域管理'
-                        },
-                        {
-                            index: 'adPrice',
-                            title: '价格管理',
-                        }
-                    ]
+                    index: 'adAttrs',
+                    title: '广告属性'
                 },
                 {
                     icon: 'el-icon-lx-calendar',

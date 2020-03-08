@@ -52,11 +52,6 @@ Vue.use(Router);
                     meta: { title: '企业列表' }
                 },
                 {
-                    path: '/adLabel',
-                    component: () => import(/* webpackChunkName: "adLabel" */ '../components/page/AdLabel.vue'),
-                    meta: { title: '标签管理' }
-                },
-                {
                     // 富文本编辑器组件
                     path: '/editor',
                     component: () => import(/* webpackChunkName: "editor" */ '../components/page/VueEditor.vue'),
@@ -75,19 +70,9 @@ Vue.use(Router);
                     meta: { title: '文件上传' }
                 },
                 {
-                    path: '/adType',
-                    component: () => import(/* webpackChunkName: "adType" */ '../components/page/AdType.vue'),
-                    meta: { title: '类型管理' }
-                },
-                {
-                    path: '/adArea',
-                    component: () => import(/* webpackChunkName: "adArea" */ '../components/page/AdArea.vue'),
-                    meta: { title: '区域管理' }
-                },
-                {
-                    path: '/adPrice',
-                    component: () => import(/* webpackChunkName: "adPrice" */ '../components/page/AdPrice.vue'),
-                    meta: { title: '区域管理' }
+                    path: '/adAttrs',
+                    component: () => import(/* webpackChunkName: "adArea" */ '../components/page/AdAttrs.vue'),
+                    meta: { title: '广告属性' }
                 },
                 {
                     path: '/analysis',
