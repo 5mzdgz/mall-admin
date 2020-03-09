@@ -100,6 +100,11 @@ Vue.use(Router);
                     meta: { title: '小程序其他' }
                 },
                 {
+                    path: '/map',
+                    component: () => import(/* webpackChunkName: "wxother" */ '../components/common/Map.vue'),
+                    meta: { title: '腾讯地图' }
+                },
+                {
                     // vue-schart组件
                     path: '/enterprise',
                     component: () => import(/* webpackChunkName: "enterprise" */ '../components/page/BaseCharts.vue'),

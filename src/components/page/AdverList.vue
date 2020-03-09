@@ -110,7 +110,7 @@
                         <el-button
                             type="text"
                             icon="el-icon-edit"
-                            @click="handleDelete(scope.$index, scope.row)"
+                            @click="handleEdit(scope.$index, scope.row)"
                         >编辑</el-button>
                         <el-button
                             type="text"
@@ -188,8 +188,21 @@
                     <el-form-item label="媒体位置" prop="adAddress">
                         <el-input v-model="ruleForm.adAddress" suffix-icon="el-icon-location"></el-input>
                     </el-form-item>
-                    <el-form-item label="媒体描述" prop="descr">
-                        <el-input type="textarea" v-model="ruleForm.descr"></el-input>
+                    <el-form-item label="纬度" prop="latitude">
+                        <el-input v-model="ruleForm.latitude"></el-input>
+                    </el-form-item>
+                    <el-form-item label="经度" prop="longitude">
+                        <el-input v-model="ruleForm.longitude"></el-input>
+                    </el-form-item>
+                    <el-form-item label="媒体标签" prop="labelId">
+                        <el-checkbox-group v-model="ruleForm.labelId">
+                            <el-checkbox
+                                v-for="item of attrsData.labelEntityList"
+                                :key="item.labelId"
+                                :label="item.labelName"
+                                :name="item.labelId.toString()"
+                            ></el-checkbox>
+                        </el-checkbox-group>
                     </el-form-item>
                     <el-form-item label="媒体照片" prop="descr">
                         <el-upload
@@ -205,7 +218,9 @@
                             <img width="100%" :src="dialogImageUrl" alt />
                         </el-dialog>
                     </el-form-item>
-                    <el-form-item label="媒体视频" prop="descr">
+                </div>
+                <div class="right-box">
+                    <el-form-item label="媒体视频">
                         <el-upload
                             class="avatar-uploader"
                             action="上传地址"
@@ -232,18 +247,8 @@
                             ></el-progress>
                         </el-upload>
                     </el-form-item>
-                </div>
-                <div class="right-box">
-                    <el-form-item label="活动性质" prop="labelId">
-                        <el-checkbox-group v-model="ruleForm.labelId">
-                            <el-checkbox
-                                v-for="item of attrsData.labelEntityList"
-                                :key="item.labelId"
-                                :label="item.labelName"
-                                name="item.labelName"
-                                :value="item.labelId"
-                            ></el-checkbox>
-                        </el-checkbox-group>
+                    <el-form-item label="媒体描述" prop="descr">
+                        <el-input type="textarea" v-model="ruleForm.descr"></el-input>
                     </el-form-item>
                     <div class="label-title">凭租信息</div>
                     <el-form-item label="媒体价格" prop="lowPrice">
@@ -281,7 +286,7 @@
                     <el-form-item label="联系电话" prop="contactPhone">
                         <el-input v-model="ruleForm.contactPhone"></el-input>
                     </el-form-item>
-                    <el-form-item label="展示状态" prop="adAddress">
+                    <el-form-item label="展示状态" prop="checkStatus">
                         <el-select v-model="ruleForm.modelType" placeholder="请选择媒体类型">
                             <el-option label="上架" value="1"></el-option>
                             <el-option label="下架" value="2"></el-option>
@@ -300,12 +305,10 @@
 </template>
 
 <script>
-import { TMap } from '@/utils/TMap';
 import { adStatusList, updateAd, navArr } from '@/api/examine';
 export default {
     data() {
         return {
-            date1: '',
             videoFlag: false,
             //是否显示进度条
             videoUploadPercent: '',
@@ -332,7 +335,10 @@ export default {
                 highPrice: '',
                 typeId: '',
                 status: '',
-                labelId: []
+                latitude: '',
+                longitude: '',
+                labelId: [],
+                checkStatus: ''
             },
             rules: {
                 itemName: [
@@ -343,23 +349,25 @@ export default {
                     { required: true, message: '请输入公司名称', trigger: 'blur' },
                     { min: 3, max: 30, message: '长度在 3 到 30 个字符', trigger: 'blur' }
                 ],
+                latitude: [{ required: true, message: '请输入纬度', trigger: 'blur' }],
+                longitude: [{ required: true, message: '请输入经度', trigger: 'blur' }],
                 status: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 areaId: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 typeId: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 lowPrice: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 highPrice: [{ required: true, message: '请输入最高价格', trigger: 'blur' }],
-                endTimeStr: [{ type: 'date', required: true, message: '请选择日期', trigger: 'change' }],
+                // endTimeStr: [{ type: 'date', required: true, message: '请选择日期', trigger: 'change' }],
                 contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
                 contactPhone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
                 adHigh: [{ required: true, message: '请输入高度', trigger: 'blur' }],
                 adWide: [{ required: true, message: '请输入宽度', trigger: 'blur' }],
                 adAddress: [{ required: true, message: '请输入选择地址', trigger: 'blur' }],
                 modelType: [{ required: true, message: '请选择媒体类型', trigger: 'change' }],
-                labelId: [{ labelId: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }],
-                descr: [
-                    { required: true, message: '请填写描述', trigger: 'blur' },
-                    { min: 10, max: 500, message: '长度在 10 到 500 个字符', trigger: 'blur' }
-                ]
+                labelId: [{ labelNameArr: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }],
+                // descr: [
+                //     { required: true, message: '请填写描述', trigger: 'blur' },
+                //     { min: 10, max: 500, message: '长度在 10 到 500 个字符', trigger: 'blur' }
+                // ]
             },
             query: {
                 address: '',
@@ -450,35 +458,7 @@ export default {
         this.getNavArr();
     },
     mounted() {
-        TMap('5MUBZ-PKSK3-BXL3V-36KSL-UNWCJ-32FL4').then(qq => {
-            let center = new qq.maps.LatLng(23.916527, 108.397128);
-            let map = new qq.maps.Map(document.getElementById('container'), {
-                // 地图的中心地理坐标。
-                center: center,
-                zoom: 8
-            });
-
-            // 创建标记
-            var marker = new qq.maps.Marker({
-                // 标记的位置
-                position: center,
-                map: map
-            });
-            console.log(map, marker)
-            // 提示窗
-            var info = new qq.maps.InfoWindow({
-                map: map
-            });
-            // 悬浮标记显示信息
-            qq.maps.event.addListener(marker, 'mouseover', function() {
-                info.open();
-                info.setContent(`<div style="margin:10px;">${'贵港市'}</div>`);
-                info.setPosition(center);
-            });
-            qq.maps.event.addListener(marker, 'mouseout', function() {
-                info.close();
-            });
-        });
+        
     },
     methods: {
         getNavArr() {
@@ -493,6 +473,11 @@ export default {
         getAdStatusList(query) {
             adStatusList(query).then(res => {
                 console.log(res);
+                // res.data.records.forEach(items => {
+                //     items.adLabelEntityList.forEach(item => {
+                //         item.labelId.toString()
+                //     })
+                // })
                 this.chargeArr = res.data.records;
                 this.query.pageTotal = res.data.total;
             });
@@ -538,10 +523,25 @@ export default {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
         },
-        handleEdit() {
+        handleEdit(rowIndex, row) {
+            row.companyName = row.adCompanyEntity.companyName
+            row.lowPrice = row.adPriceEntity.lowPrice
+            row.highPrice = row.adPriceEntity.highPrice
+            row.contactName = row.adLeaseEntity.contactName
+            row.contactPhone = row.adLeaseEntity.contactPhone
+            row.typeId = row.adTypeEntity.typeId
+            const arr = []
+            row.adLabelEntityList.forEach(element => {
+               arr.push(element.labelId.toString())
+            });
+            row.labelId = arr
+            this.ruleForm = row
+
+            console.log(row, this.ruleForm)
             this.editVisible = true;
         },
         submitForm(formName) {
+            console.log(this.ruleForm)
             this.$refs[formName].validate(valid => {
                 if (valid) {
                     alert('submit!');
