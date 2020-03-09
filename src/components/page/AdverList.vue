@@ -194,19 +194,22 @@
                     <el-form-item label="经度" prop="longitude">
                         <el-input v-model="ruleForm.longitude"></el-input>
                     </el-form-item>
-                    <el-form-item label="媒体标签" prop="labelId">
-                        <el-checkbox-group v-model="ruleForm.labelId">
+                    <el-form-item label="媒体标签" prop="labelNameArr">
+                        <el-checkbox-group v-model="ruleForm.labelNameArr">
                             <el-checkbox
                                 v-for="item of attrsData.labelEntityList"
                                 :key="item.labelId"
                                 :label="item.labelName"
-                                :name="item.labelId.toString()"
+                                :name="item.labelName"
                             ></el-checkbox>
                         </el-checkbox-group>
                     </el-form-item>
-                    <el-form-item label="媒体照片" prop="descr">
+                    <el-form-item label="媒体照片" prop="imageUrlList">
                         <el-upload
-                            action="https://jsonplaceholder.typicode.com/posts/"
+                            action="http://www.ggweijie.com:8838/upload/file"
+                            :headers="myHeaders"
+                            :file-list="ruleForm.imageUrlList"
+                            :limit="3"
                             list-type="picture-card"
                             :on-preview="handlePictureCardPreview"
                             :on-remove="handleRemove"
@@ -223,20 +226,21 @@
                     <el-form-item label="媒体视频">
                         <el-upload
                             class="avatar-uploader"
-                            action="上传地址"
+                            action="http://www.ggweijie.com:8838/upload/file"
+                            :headers="myHeaders"
                             v-bind:on-progress="uploadVideoProcess"
                             v-bind:on-success="handleVideoSuccess"
                             v-bind:before-upload="beforeUploadVideo"
                             v-bind:show-file-list="false"
                         >
                             <video
-                                v-if="videoForm.showVideoPath !='' && !videoFlag"
-                                v-bind:src="videoForm.showVideoPath"
+                                v-if="ruleForm.videoUrl !='' && !videoFlag"
+                                v-bind:src="ruleForm.videoUrl"
                                 class="avatar video-avatar"
                                 controls="controls"
                             >您的浏览器不支持视频播放</video>
                             <i
-                                v-else-if="videoForm.showVideoPath =='' && !videoFlag"
+                                v-else-if="ruleForm.videoUrl =='' && !videoFlag"
                                 class="el-icon-plus avatar-uploader-icon"
                             ></i>
                             <el-progress
@@ -271,7 +275,7 @@
                             ></el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="到期时间" prop="endTimeStr">
+                    <el-form-item v-if="ruleForm.status === 2" label="到期时间" prop="endTimeStr">
                         <div class="block">
                             <el-date-picker
                                 v-model="ruleForm.endTimeStr"
@@ -305,19 +309,27 @@
 </template>
 
 <script>
+let token =  sessionStorage.getItem('token') // 要保证取到
 import { adStatusList, updateAd, navArr } from '@/api/examine';
 export default {
     data() {
+        let validateStatus = (rule, value, callback) => {
+            if (this.ruleForm.status === 2) {
+                if(!this.ruleForm.endTimeStr) {
+                    callback(new Error('请选择时间'));
+                }
+                callback();
+            } else {
+                callback();
+            }
+        };
         return {
+            myHeaders: { Authorization: token },
             videoFlag: false,
             //是否显示进度条
             videoUploadPercent: '',
             //进度条的进度，
             isShowUploadVideo: false,
-            //显示上传按钮
-            videoForm: {
-                showVideoPath: ''
-            },
             dialogImageUrl: '',
             dialogVisible: false,
             ruleForm: {
@@ -337,8 +349,10 @@ export default {
                 status: '',
                 latitude: '',
                 longitude: '',
-                labelId: [],
-                checkStatus: ''
+                labelNameArr: [],
+                checkStatus: '',
+                imageUrlList: [],
+                videoUrl: ''
             },
             rules: {
                 itemName: [
@@ -356,14 +370,15 @@ export default {
                 typeId: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 lowPrice: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
                 highPrice: [{ required: true, message: '请输入最高价格', trigger: 'blur' }],
-                // endTimeStr: [{ type: 'date', required: true, message: '请选择日期', trigger: 'change' }],
+                endTimeStr: [{ validator: validateStatus, type: 'date', required: true, message: '请选择日期', trigger: 'change' }],
                 contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
                 contactPhone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
                 adHigh: [{ required: true, message: '请输入高度', trigger: 'blur' }],
                 adWide: [{ required: true, message: '请输入宽度', trigger: 'blur' }],
                 adAddress: [{ required: true, message: '请输入选择地址', trigger: 'blur' }],
                 modelType: [{ required: true, message: '请选择媒体类型', trigger: 'change' }],
-                labelId: [{ labelNameArr: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }],
+                labelNameArr: [{ type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }],
+                imageUrlList: [{ type: 'array', required: true, message: '请上传一张图片', trigger: 'blur' }],
                 // descr: [
                 //     { required: true, message: '请填写描述', trigger: 'blur' },
                 //     { min: 10, max: 500, message: '长度在 10 到 500 个字符', trigger: 'blur' }
@@ -473,11 +488,6 @@ export default {
         getAdStatusList(query) {
             adStatusList(query).then(res => {
                 console.log(res);
-                // res.data.records.forEach(items => {
-                //     items.adLabelEntityList.forEach(item => {
-                //         item.labelId.toString()
-                //     })
-                // })
                 this.chargeArr = res.data.records;
                 this.query.pageTotal = res.data.total;
             });
@@ -524,20 +534,31 @@ export default {
             this.getData();
         },
         handleEdit(rowIndex, row) {
+            console.log(arr, row, this.ruleForm)
             row.companyName = row.adCompanyEntity.companyName
             row.lowPrice = row.adPriceEntity.lowPrice
             row.highPrice = row.adPriceEntity.highPrice
             row.contactName = row.adLeaseEntity.contactName
             row.contactPhone = row.adLeaseEntity.contactPhone
             row.typeId = row.adTypeEntity.typeId
+            let obj = {}
+            let imgArr = []
+            row.imageUrlList.forEach(item => {
+                obj.url = item
+                console.log(item)
+                console.log(obj)
+                imgArr.push(obj)
+            })
+            row.imageUrlList = imgArr
+            console.log(imgArr)
             const arr = []
             row.adLabelEntityList.forEach(element => {
-               arr.push(element.labelId.toString())
+               arr.push(element.labelName)
             });
-            row.labelId = arr
+            row.labelNameArr = arr
             this.ruleForm = row
 
-            console.log(row, this.ruleForm)
+            console.log(arr, row, this.ruleForm)
             this.editVisible = true;
         },
         submitForm(formName) {
@@ -563,7 +584,10 @@ export default {
             this.dialogVisible = true;
         },
         handleAvatarSuccess(res, file) {
-            console.log(res, file);
+            console.log('图片',res, file);
+            console.log(this.ruleForm.imagesList)
+            this.ruleForm.imagesList.push(res.date)
+            console.log(this.ruleForm.imagesList)
         },
         //上传前回调
         beforeUploadVideo(file) {
@@ -592,14 +616,7 @@ export default {
 
             //前台上传地址
             if (file.status == 'success') {
-                this.videoForm.showVideoPath = file.url;
-            } else {
-                console.log('上传失败');
-            }
-
-            //后台上传地址
-            if (res.Code == 0) {
-                this.videoForm.showVideoPath = res.Data;
+                this.ruleForm.videoUrl = res.date;
             } else {
                 console.log('上传失败');
             }
