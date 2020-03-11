@@ -57,7 +57,7 @@
                 </el-select>
             </el-row>
         </div>
-        <div class="container">
+        <div class="container" v-if="show">
             <el-table :data="chargeArr" style="width: 100%">
                 >
                 <el-table-column property="itemId" label="ID" width="50"></el-table-column>
@@ -102,11 +102,11 @@
                 <el-table-column property="endTime" label="上架状态"></el-table-column>
                 <el-table-column label="操作">
                     <template slot-scope="scope">
-                        <el-button
+                        <!-- <el-button
                             type="text"
                             icon="el-icon-edit"
                             @click="handleEdit(scope.$index, scope.row)"
-                        >详情</el-button>
+                        >详情</el-button> -->
                         <el-button
                             type="text"
                             icon="el-icon-edit"
@@ -139,7 +139,8 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="70%">
+        <!-- <el-dialog title="编辑" :visible.sync="editVisible" width="70%"> -->
+        <div class="container" v-else>
             <el-form
                 :model="ruleForm"
                 :rules="rules"
@@ -165,6 +166,9 @@
                             ></el-option>
                         </el-select>
                     </el-form-item>
+                    <el-form-item v-if="ruleForm.typeId === 4" label="显示时间" prop="adSecond">
+                        <el-input v-model="ruleForm.adSecond"></el-input>
+                    </el-form-item>
                     <el-form-item label="媒体区域" prop="areaId">
                         <el-select v-model="ruleForm.areaId" placeholder="请选择媒体区域">
                             <el-option
@@ -186,7 +190,7 @@
                         </el-col>
                     </el-form-item>
                     <el-form-item label="媒体位置" prop="adAddress">
-                        <el-input v-model="ruleForm.adAddress" suffix-icon="el-icon-location"></el-input>
+                        <el-input v-model="ruleForm.adAddress" @focus="focus()" suffix-icon="el-icon-location"></el-input>
                     </el-form-item>
                     <el-form-item label="纬度" prop="latitude">
                         <el-input v-model="ruleForm.latitude"></el-input>
@@ -302,15 +306,19 @@
                     </el-form-item>
                 </div>
             </el-form>
+        <!-- </el-dialog> -->
+     </div>
+        <el-dialog title="地图" :visible.sync="mapVisible" width="40%">
+            <iframe id="mapPage" width="100%" height="600px" frameborder=0
+                src="https://apis.map.qq.com/tools/locpicker?search=1&type=1&key=5MUBZ-PKSK3-BXL3V-36KSL-UNWCJ-32FL4&referer=myapp">
+            </iframe>
         </el-dialog>
-
-        <div id="container"></div>
     </div>
 </template>
 
 <script>
 let token =  sessionStorage.getItem('token') // 要保证取到
-import { adStatusList, updateAd, navArr } from '@/api/examine';
+import { adStatusList, updateAd, navArr, updateMine } from '@/api/examine';
 export default {
     data() {
         let validateStatus = (rule, value, callback) => {
@@ -323,7 +331,19 @@ export default {
                 callback();
             }
         };
+        let validateAdSecond = (rule, value, callback) => {
+            if (this.ruleForm.typeId === 4) {
+                if(!this.ruleForm.adSecond) {
+                    callback(new Error('请输入秒'));
+                }
+                callback();
+            } else {
+                callback();
+            }
+        };
         return {
+            show: true,
+            mapVisible: false,
             myHeaders: { Authorization: token },
             videoFlag: false,
             //是否显示进度条
@@ -332,28 +352,7 @@ export default {
             isShowUploadVideo: false,
             dialogImageUrl: '',
             dialogVisible: false,
-            ruleForm: {
-                itemName: '',
-                companyName: '',
-                contactPhone: '',
-                areaId: '',
-                adHigh: '',
-                adWide: '',
-                adAddress: '',
-                descr: '',
-                contactName: '',
-                endTimeStr: '',
-                lowPrice: '',
-                highPrice: '',
-                typeId: '',
-                status: '',
-                latitude: '',
-                longitude: '',
-                labelNameArr: [],
-                checkStatus: '',
-                imageUrlList: [],
-                videoUrl: ''
-            },
+            ruleForm: {},
             rules: {
                 itemName: [
                     { required: true, message: '请输入活动名称', trigger: 'blur' },
@@ -363,6 +362,7 @@ export default {
                     { required: true, message: '请输入公司名称', trigger: 'blur' },
                     { min: 3, max: 30, message: '长度在 3 到 30 个字符', trigger: 'blur' }
                 ],
+                adSecond: [{ validator: validateAdSecond, required: true, message: '请输入秒', trigger: 'blur' }],
                 latitude: [{ required: true, message: '请输入纬度', trigger: 'blur' }],
                 longitude: [{ required: true, message: '请输入经度', trigger: 'blur' }],
                 status: [{ required: true, message: '请输入最低价格', trigger: 'blur' }],
@@ -473,9 +473,23 @@ export default {
         this.getNavArr();
     },
     mounted() {
-        
+        let that = this;
+        window.addEventListener('message', function(event) {
+        // 接收位置信息，用户选择确认位置点后选点组件会触发该事件，回传用户的位置信息
+        var loc = event.data;
+        if (loc && loc.module == 'locationPicker') {//防止其他应用也会向该页面post信息，需判断module是否为'locationPicker'
+          console.log('location', loc);
+          that.ruleForm.adAddress = loc.poiaddress
+          that.ruleForm.latitude = loc.latlng.lat
+          that.ruleForm.longitude = loc.latlng.lng
+          that.mapVisible = false
+        }
+        }, false);
     },
     methods: {
+        focus() {
+            this.mapVisible = true
+        },
         getNavArr() {
             navArr().then(res => {
                 console.log(res);
@@ -524,9 +538,7 @@ export default {
         },
         // 保存编辑
         saveEdit() {
-            this.editVisible = false;
-            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-            this.$set(this.tableData, this.idx, this.form);
+    
         },
         // 分页导航
         handlePageChange(val) {
@@ -534,6 +546,9 @@ export default {
             this.getData();
         },
         handleEdit(rowIndex, row) {
+            this.show = false
+            this.editVisible = true;
+            this.idx = rowIndex
             console.log(arr, row, this.ruleForm)
             row.companyName = row.adCompanyEntity.companyName
             row.lowPrice = row.adPriceEntity.lowPrice
@@ -543,8 +558,9 @@ export default {
             row.typeId = row.adTypeEntity.typeId
             let obj = {}
             let imgArr = []
-            row.imageUrlList.forEach(item => {
+            row.imageUrlList.forEach((item,index) => {
                 obj.url = item
+                obj.name = index+'.jpg'
                 console.log(item)
                 console.log(obj)
                 imgArr.push(obj)
@@ -559,13 +575,37 @@ export default {
             this.ruleForm = row
 
             console.log(arr, row, this.ruleForm)
-            this.editVisible = true;
         },
         submitForm(formName) {
             console.log(this.ruleForm)
             this.$refs[formName].validate(valid => {
                 if (valid) {
-                    alert('submit!');
+                    // alert('submit!');
+                    updateMine(this.ruleForm).then(res => {
+                        console.log(res)
+                        if (res.code === 200) {
+                            this.show = true
+                            this.editVisible = false;
+                            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                            let imageUrl;
+                                query.imageUrlList.forEach(item => {
+                                    console.log(imageUrl)
+                                    if (typeof(item) === 'string') {
+                                        if (imageUrl) {
+                                            console.log(item, 1111, imageUrl)
+                                            imageUrl += imageUrl + ',' + item
+                                        }
+                                    }
+                                    if (item.url) {
+                                        if (imageUrl) {
+                                            imageUrl += imageUrl + ',' + item.url
+                                            console.log(item, 2222, imageUrl)
+                                        }
+                                    }
+                                })
+                            this.$set(this.chargeArr, this.idx, this.ruleForm);
+                        }
+                    })
                 } else {
                     console.log('error submit!!');
                     return false;
@@ -585,9 +625,9 @@ export default {
         },
         handleAvatarSuccess(res, file) {
             console.log('图片',res, file);
-            console.log(this.ruleForm.imagesList)
-            this.ruleForm.imagesList.push(res.date)
-            console.log(this.ruleForm.imagesList)
+            console.log(this.ruleForm.imageUrlList)
+            this.ruleForm.imageUrlList.push(res.date)
+            console.log(this.ruleForm.imageUrlList)
         },
         //上传前回调
         beforeUploadVideo(file) {
