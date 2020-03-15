@@ -28,7 +28,7 @@ Vue.use(Router);
                 },
                 {
                     path: '/adverList',
-                    component: () => import(/* webpackChunkName: "adverList" */ '../components/page/AdverList.vue'),
+                    component: () => import(/* webpackChunkName: "adverList" */ '../components/page/adverList/AdverList.vue'),
                     meta: { title: '广告位列表' }
                 },
                 {
@@ -86,18 +86,8 @@ Vue.use(Router);
                 },
                 {
                     path: '/wxhome',
-                    component: () => import(/* webpackChunkName: "wxhome" */ '../components/page/Wxhome.vue'),
-                    meta: { title: '小程序首页' }
-                },
-                {
-                    path: '/wxnav',
-                    component: () => import(/* webpackChunkName: "wxnav" */ '../components/page/Wxnav.vue'),
-                    meta: { title: '小程序导航' }
-                },
-                {
-                    path: '/wxother',
-                    component: () => import(/* webpackChunkName: "wxother" */ '../components/page/Wxother.vue'),
-                    meta: { title: '小程序其他' }
+                    component: () => import(/* webpackChunkName: "wxhome" */ '../components/page/wxhome/Wxhome.vue'),
+                    meta: { title: '内容管理' }
                 },
                 {
                     path: '/map',

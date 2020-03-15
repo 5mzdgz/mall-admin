@@ -104,22 +104,8 @@ export default {
                 },
                 {
                     icon: 'el-icon-lx-calendar',
-                    index: '4',
-                    title: '内容管理',
-                    subs: [
-                        {
-                            index: 'wxhome',
-                            title: '首页轮播图'
-                        },
-                        {
-                            index: 'wxnav',
-                            title: '导航管理'
-                        },
-                        {
-                            index: 'wxother',
-                            title: '其他内容'
-                        }
-                    ]
+                    index: 'wxhome',
+                    title: '内容管理'
                 },
                 {
                     icon: 'el-icon-pie-chart',

@@ -1,5 +1,13 @@
 import request from '../utils/request';
 
+export const searchAtrrt = (query) => {
+    return request({
+        url: '/search/atrrt',
+        method: 'post',
+        data: query
+    });
+};
+
 export const adStatusList = (query) => {
     return request({
         url: '/ad/adStatusList',
